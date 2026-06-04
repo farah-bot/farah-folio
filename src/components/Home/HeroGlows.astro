@@ -1,0 +1,38 @@
+
+<div class="glow glow-1" aria-hidden="true"></div>
+<div class="glow glow-2" aria-hidden="true"></div>
+<div class="glow glow-3" aria-hidden="true"></div>
+
+<style>
+@keyframes glowIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  opacity: 0;
+  animation: glowIn 1.2s ease forwards;
+}
+.glow-1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 65%);
+  top: -150px; left: -120px;
+  animation-delay: 0.3s;
+}
+.glow-2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(249,115,22,0.16) 0%, transparent 65%);
+  bottom: -80px; right: -80px;
+  animation-delay: 0.5s;
+}
+.glow-3 {
+  width: 350px; height: 350px;
+  background: radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 65%);
+  top: 30%; left: 60%;
+  animation-delay: 0.7s;
+}
+</style>

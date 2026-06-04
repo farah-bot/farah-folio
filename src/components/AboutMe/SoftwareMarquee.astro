@@ -1,0 +1,47 @@
+---
+import { supabase, type Software } from '../../lib/supabase';
+
+const { data } = await supabase.from('software').select('*').order('order_index');
+const software: Software[] = data ?? [];
+const doubled = [...software, ...software];
+---
+
+<div class="marquee-wrap overflow-hidden" role="region" aria-label="Software tools">
+  <ul
+    class="flex gap-2 w-max list-none p-0 m-3 motion-safe:animate-marquee motion-safe:hover:[animation-play-state:paused]"
+    aria-label="Software list"
+  >
+    {doubled.map((tool, i) => (
+      <li
+        class="relative flex items-center justify-center w-16 h-16 shrink-0
+               rounded-2xl bg-white/4 border border-white/8 cursor-default
+               transition-all duration-200
+               hover:scale-110 hover:-translate-y-1 hover:bg-white/8 hover:border-white/18
+               group"
+        aria-hidden={i >= software.length ? 'true' : undefined}
+      >
+        <img
+          src={`https://cdn.simpleicons.org/${tool.slug}/ffffff`}
+          alt={i < software.length ? tool.name : ''}
+          width="28"
+          height="28"
+          loading="lazy"
+          decoding="async"
+          class="block select-none pointer-events-none"
+        />
+        <span
+          class="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 translate-y-1.5
+                 opacity-0 pointer-events-none
+                 group-hover:opacity-100 group-hover:translate-y-0
+                 transition-all duration-150
+                 bg-[rgba(14,14,14,0.96)] border border-white/12 rounded-lg
+                 px-2.5 py-1 text-[11px] font-bold font-display tracking-[0.04em]
+                 text-t1 whitespace-nowrap shadow-[0_4px_16px_rgba(0,0,0,0.55)] z-10"
+          aria-hidden="true"
+        >
+          {tool.name}
+        </span>
+      </li>
+    ))}
+  </ul>
+</div>

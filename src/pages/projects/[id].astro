@@ -1,0 +1,129 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { supabase, type Project } from '../../lib/supabase';
+
+export async function getStaticPaths() {
+  const { createClient } = await import('@supabase/supabase-js');
+  const url = import.meta.env.PUBLIC_SUPABASE_URL;
+  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
+  const sb = createClient(url, key);
+  const { data } = await sb.from('projects').select('id');
+  return (data ?? []).map(p => ({ params: { id: p.id } }));
+}
+
+const { id } = Astro.params;
+const { data: project } = await supabase
+  .from('projects').select('*').eq('id', id).single<Project>();
+
+if (!project) return Astro.redirect('/projects', 302);
+
+const projectSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: project.title,
+  description: project.overview || project.description,
+  creator: { '@type': 'Person', name: 'Farah Fairuz', url: 'https://farahfairuz.dev' },
+  url: `https://farahfairuz.dev/projects/${project.id}`,
+  keywords: project.tags.join(', '),
+  ...(project.image_url ? { image: project.image_url } : {}),
+};
+---
+
+<Layout
+  title={project.title}
+  page="projects"
+  description={project.overview?.substring(0, 155) || project.description}
+  ogImage={project.image_url}
+  ogType="article"
+  jsonLd={projectSchema}
+>
+  <article class="page-content" aria-label={`Project: ${project.title}`}>
+
+    <nav aria-label="Breadcrumb" class="mb-5">
+      <a href="/projects"
+         class="inline-flex items-center gap-1.5 text-t2 text-sm font-medium hover:text-t1 transition-colors duration-200">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        All Projects
+      </a>
+    </nav>
+
+    <figure
+      class="relative w-full h-85 rounded-xl overflow-hidden mb-5 flex items-end m-0"
+      style={`background:${project.bg_color};`}
+    >
+      {project.image_url
+        ? <img
+            src={project.image_url}
+            alt={`${project.title} — project preview`}
+            width="720" height="340"
+            loading="eager" decoding="async"
+            class="absolute inset-0 w-full h-full object-cover block"
+          />
+        : (
+          <div class="absolute inset-0 flex items-center justify-center gap-4" aria-hidden="true">
+            <!-- w-30=120px, h-45=180px, -rotate-6, w-25=100px, h-40=160px, rotate-2, h-35=140px -->
+            <div class="w-30 h-45 rounded-[18px] bg-white/15 border border-white/25 -rotate-6 translate-y-5"></div>
+            <div class="w-25 h-40 rounded-[18px] bg-white/15 border border-white/25 rotate-2"></div>
+            <div class="w-22.5 h-35 rounded-[18px] bg-white/15 border border-white/25 rotate-[8deg] translate-y-4"></div>
+          </div>
+        )
+      }
+
+      <figcaption
+        class="relative z-10 w-full px-7 py-6"
+        style="background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 100%);"
+      >
+        <h1 class="text-[clamp(1.8rem,4vw,2.4rem)] font-extrabold text-white mb-1
+                   [text-shadow:0_2px_8px_rgba(0,0,0,0.3)]">
+          {project.title}
+        </h1>
+        <p class="text-[0.95rem] text-white/80">{project.description}</p>
+      </figcaption>
+    </figure>
+
+    <div class="flex flex-wrap gap-2 mb-6" role="list" aria-label="Project tags">
+      {project.tags.map(tag => (
+        <span role="listitem" class="tag-chip">{tag}</span>
+      ))}
+      <span
+        role="listitem"
+        class="inline-flex items-center px-3 py-1 rounded-md text-[11px] font-bold
+               tracking-widest uppercase font-display
+               bg-purple/10 border border-purple/25 text-purple-l"
+      >
+        {project.category}
+      </span>
+    </div>
+
+    {project.overview && (
+      <section class="surface-card p-7 mb-4" aria-labelledby="overview-heading">
+        <h2 id="overview-heading" class="text-base font-bold mb-3">Overview</h2>
+        <p class="text-[0.9rem] text-t2 leading-[1.8]">{project.overview}</p>
+      </section>
+    )}
+
+    {project.case_study_url && (
+      <a
+        href={project.case_study_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-purple text-white rounded-[10px]
+               font-display text-sm font-semibold mb-7 transition-opacity hover:opacity-85"
+        aria-label={`View full case study for ${project.title} — external link`}
+      >
+        View Case Study ↗
+      </a>
+    )}
+
+    <footer class="pt-3 border-t border-border">
+      <a href="/projects" class="text-sm text-t2 transition-colors hover:text-t1">
+        ← Back to all projects
+      </a>
+    </footer>
+
+  </article>
+</Layout>

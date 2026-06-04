@@ -1,0 +1,185 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SkillsScatter from '../components/AboutMe/SkillsScatter.astro';
+import SoftwareMarquee from '../components/AboutMe/SoftwareMarquee.astro';
+import { supabase, type Profile, type Experience, type Skill, type SocialLink } from '../lib/supabase';
+
+const [pRes, eRes, sRes, slRes] = await Promise.all([
+  supabase.from('profile').select('*').single<Profile>(),
+  supabase.from('experience').select('*').eq('is_visible', true).order('order_index'),
+  supabase.from('skills').select('*').order('order_index'),
+  supabase.from('social_links').select('*').order('order_index'),
+]);
+
+if (!pRes.data) throw new Error('No profile found — run supabase/schema.sql first.');
+const profile    = pRes.data;
+const experience = eRes.data ?? [];
+const skills     = sRes.data ?? [];
+const socials    = slRes.data ?? [];
+
+const SOCIAL_ICONS: Record<string, string> = {
+  Email: '✉', LinkedIn: 'in', GitHub: '⌂',
+  Twitter: '𝕏', Instagram: '◎', 'Read.cv': '◉', Portfolio: '🌐',
+};
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.role,
+  description: profile.bio_intro,
+  url: 'https://farahfairuz.dev/about',
+  worksFor: { '@type': 'Organization', name: profile.company },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Jember' },
+  knowsAbout: skills.map(s => s.name),
+};
+---
+
+<Layout
+  title="About Me"
+  page="about"
+  description={`${profile.name} — ${profile.role}. ${profile.bio_intro.substring(0, 120)}...`}
+  jsonLd={personSchema}
+>
+  <div class="page-content">
+    <div class="grid gap-3 items-start md:grid-cols-[280px_1fr]">
+
+      <aside class="flex flex-col gap-2.5 md:sticky md:top-6" aria-label="Profile sidebar">
+
+        <div class="surface-card p-5 overflow-hidden">
+          <div class="w-full h-45 rounded-lg mb-4 overflow-hidden flex items-center justify-center"
+               style="background:linear-gradient(135deg,#1a1a2e,#2d1b69);">
+            {profile.avatar_url
+              ? <img
+                  src={profile.avatar_url}
+                  alt={`Photo of ${profile.name}`}
+                  width="280" height="180"
+                  loading="lazy" decoding="async"
+                  class="w-full h-full object-cover"
+                />
+              : <span class="text-6xl" role="img" aria-label="Developer emoji">👩🏻‍💻</span>
+            }
+          </div>
+
+          <p class="font-display font-bold text-[1.1rem] mb-2">Hey again 👋</p>
+          <p class="text-[0.82rem] text-t2 leading-relaxed mb-3.5">
+            I'm currently at {profile.company}, building software, fixing bugs,
+            and enjoying the process of making things work.
+          </p>
+
+          <div class="flex gap-1.5 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                         bg-s2 border border-border text-[11px] font-semibold text-t2">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              {profile.location}
+            </span>
+            <a
+              href={profile.company_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                     bg-s2 border border-border text-[11px] font-semibold text-t2
+                     transition-all hover:text-t1 hover:border-border-h"
+              aria-label={`${profile.company} — external link`}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                <line x1="12" y1="12" x2="12" y2="12.01"/>
+              </svg>
+              {profile.company}
+            </a>
+          </div>
+        </div>
+
+        <section class="surface-card p-5 overflow-hidden" aria-labelledby="software-heading">
+          <h2 id="software-heading" class="text-sm font-bold font-display mb-3.5">
+            Software of choice
+          </h2>
+          <SoftwareMarquee />
+        </section>
+
+      </aside>
+
+      <div class="flex flex-col gap-1">
+
+        <section class="surface-card p-7 animate-fade-up delay-100" aria-labelledby="bio-heading">
+          <h2 id="bio-heading" class="text-base font-bold mb-4">A little bit about me</h2>
+          <p class="text-sm text-t2 leading-[1.75]">{profile.bio_intro}</p>
+          {profile.bio_hobbies && (
+            <p class="text-sm text-t2 leading-[1.75] mt-3.5">{profile.bio_hobbies}</p>
+          )}
+        </section>
+
+        <section class="surface-card p-7 animate-fade-up delay-200" aria-labelledby="exp-heading">
+          <h2 id="exp-heading" class="text-base font-bold mb-4">Experience</h2>
+          <ol class="flex flex-col gap-5">
+            {experience.map(exp => (
+              <li class="pb-5 border-b border-border last:border-0 last:pb-0">
+                <div class="mb-1.5">
+                  {exp.company_url
+                    ? <a
+                        href={exp.company_url}
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-1 text-[12px] font-bold font-display
+                               text-t2 bg-s2 border border-border rounded-full px-3 py-0.5
+                               transition-all hover:text-t1 hover:border-border-h"
+                        aria-label={`${exp.company} — external link`}
+                      >
+                        {exp.company} ↗
+                      </a>
+                    : <span class="inline-flex items-center gap-1 text-[12px] font-bold font-display
+                                   text-t2 bg-s2 border border-border rounded-full px-3 py-0.5">
+                        {exp.company}
+                      </span>
+                  }
+                </div>
+                <p class="flex items-center gap-1.5 mb-1.5">
+                  <strong class="text-[0.9rem] font-semibold">{exp.role}</strong>
+                  <span aria-hidden="true" class="text-t3">·</span>
+                  <time class="text-sm text-t2">{exp.period}</time>
+                </p>
+                <p class="text-sm text-t2 leading-relaxed">{exp.description}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section class="surface-card p-7 animate-fade-up delay-300" aria-labelledby="skills-heading">
+          <h2 id="skills-heading" class="text-base font-bold mb-4">Skills</h2>
+          <SkillsScatter skills={skills} />
+        </section>
+
+        <section class="surface-card p-7 animate-fade-up delay-400" aria-labelledby="contact-heading">
+          <h2 id="contact-heading" class="text-base font-bold mb-4">Come and say hi!</h2>
+          <ul class="flex flex-col gap-1.5">
+            {socials.map(link => (
+              <li>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-border
+                         bg-s2 transition-all hover:border-border-h hover:translate-x-1"
+                  aria-label={`${link.platform}: ${link.url.replace('mailto:', '')}`}
+                >
+                  <span class="text-base w-6 text-center" aria-hidden="true">
+                    {SOCIAL_ICONS[link.platform] ?? '🔗'}
+                  </span>
+                  <span class="text-[13px] font-semibold min-w-20">{link.platform}</span>
+                  <span class="text-xs text-t2 flex-1">{link.url.replace('mailto:', '')}</span>
+                  <span class="text-t3 text-[13px]" aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</Layout>

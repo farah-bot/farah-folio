@@ -1,0 +1,207 @@
+---
+interface Project {
+  bg_color: string;
+  category: string;
+  title: string;
+  tags: string[];
+}
+
+interface CardConfig {
+  tx: number;
+  ty: number;
+  rot: number;
+  delay: number;
+}
+
+interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+
+const CARD_CFG: CardConfig[] = [
+  { tx: -390, ty: -195, rot: -12, delay: 0   },
+  { tx:  265, ty: -215, rot:   8, delay: 55  },
+  { tx: -315, ty:  188, rot:   6, delay: 110 },
+  { tx:  285, ty:  165, rot: -10, delay: 85  },
+  { tx:  -65, ty:  270, rot:  -4, delay: 170 },
+];
+---
+
+{projects.slice(0, 5).map((project, i) => {
+  const cfg = CARD_CFG[i] ?? CARD_CFG[0];
+  return (
+    <div
+      class="fc"
+      data-tx={cfg.tx}
+      data-ty={cfg.ty}
+      data-rot={cfg.rot}
+      data-delay={cfg.delay}
+      aria-hidden="true"
+    >
+      <div class="fc-bg" style={`background:${project.bg_color};`}></div>
+      <div class="fc-deco"></div>
+      <div class="fc-content">
+        <span class="fc-cat">{project.category}</span>
+        <h3 class="fc-title">{project.title}</h3>
+        <div class="fc-tags">
+          {project.tags.slice(0, 2).map(t => (
+            <span class="fc-tag">{t}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+})}
+
+<style>
+.fc {
+  position: absolute;
+  width: 210px; height: 145px;
+  border-radius: 18px;
+  overflow: hidden;
+  opacity: 0;
+  z-index: 5;
+  will-change: transform, opacity;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.5);
+  pointer-events: none;
+  display: none;
+}
+@media (min-width: 900px) { .fc { display: block; } }
+
+.fc-bg { position: absolute; inset: 0; }
+
+.fc-deco {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+}
+.fc-deco::after {
+  content: ''; position: absolute; inset: 12px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+}
+
+.fc-content {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 12px 14px;
+}
+.fc-cat {
+  font-size: 9px; font-weight: 700; font-family: 'Syne', sans-serif;
+  letter-spacing: 0.1em; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; margin-bottom: 2px;
+}
+.fc-title {
+  font-size: 14px; font-weight: 800; font-family: 'Syne', sans-serif;
+  color: #fff; line-height: 1.2; margin-bottom: 6px;
+}
+.fc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.fc-tag {
+  font-size: 8px; font-weight: 700; font-family: 'Syne', sans-serif;
+  color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.12);
+  border-radius: 100px; padding: 2px 8px;
+}
+</style>
+
+<script>
+const hero  = document.getElementById('hero') as HTMLElement;
+const cards = Array.from(document.querySelectorAll<HTMLElement>('.fc'));
+
+if (!hero || !cards.length) throw new Error('Hero or cards not found');
+
+interface Cfg { tx: number; ty: number; rot: number; delay: number; }
+
+const cfgs: Cfg[] = cards.map(c => ({
+  tx:    Number(c.dataset.tx    ?? 0),
+  ty:    Number(c.dataset.ty    ?? 0),
+  rot:   Number(c.dataset.rot   ?? 0),
+  delay: Number(c.dataset.delay ?? 0),
+}));
+
+let curX = cfgs.map(() => 0);
+let curY = cfgs.map(() => 0);
+let tgtX = cfgs.map(() => 0);
+let tgtY = cfgs.map(() => 0);
+let hovered = false;
+let ready   = false;
+let raf: number | null = null;
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+function applyTransform(i: number, ex = 0, ey = 0) {
+  cards[i].style.transform =
+    `translate(${cfgs[i].tx + ex}px, ${cfgs[i].ty + ey}px) rotate(${cfgs[i].rot}deg)`;
+}
+
+function tick() {
+  if (!hovered || !ready) return;
+  let running = false;
+
+  cfgs.forEach((_, i) => {
+    curX[i] = lerp(curX[i], tgtX[i], 0.065);
+    curY[i] = lerp(curY[i], tgtY[i], 0.065);
+    applyTransform(i, curX[i], curY[i]);
+    if (Math.abs(curX[i] - tgtX[i]) > 0.2 || Math.abs(curY[i] - tgtY[i]) > 0.2) {
+      running = true;
+    }
+  });
+
+  raf = running ? requestAnimationFrame(tick) : null;
+}
+
+document.addEventListener('mousemove', (e: MouseEvent) => {
+  if (!hovered || !ready) return;
+  const rx = (e.clientX / window.innerWidth  - 0.5) * 55;
+  const ry = (e.clientY / window.innerHeight - 0.5) * 55;
+  cfgs.forEach((_, i) => {
+    const depth = 0.28 + i * 0.11;
+    tgtX[i] = rx * depth;
+    tgtY[i] = ry * depth;
+  });
+  if (!raf) raf = requestAnimationFrame(tick);
+});
+
+hero.addEventListener('mouseenter', () => {
+  if (hovered) return;
+  hovered = true;
+  ready   = false;
+
+  cfgs.forEach((cfg, i) => {
+    const card = cards[i];
+    card.style.transition = 'none';
+    card.style.transform  = `translate(${cfg.tx * .25}px, ${cfg.ty * .25}px) rotate(${cfg.rot * .4}deg) scale(0.5)`;
+    card.style.opacity    = '0';
+
+    setTimeout(() => {
+      card.style.transition = 'opacity .55s ease, transform .75s cubic-bezier(.34,1.28,.64,1)';
+      card.style.opacity    = '1';
+      applyTransform(i);
+    }, cfg.delay + 10);
+  });
+
+  const maxDelay = Math.max(...cfgs.map(c => c.delay)) + 850;
+  setTimeout(() => {
+    if (!hovered) return;
+    cards.forEach(c => { c.style.transition = 'opacity .3s ease'; });
+    ready = true;
+    if (!raf) raf = requestAnimationFrame(tick);
+  }, maxDelay);
+});
+
+hero.addEventListener('mouseleave', () => {
+  if (!hovered) return;
+  hovered = false;
+  ready   = false;
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
+
+  cfgs.forEach((cfg, i) => {
+    curX[i] = 0; curY[i] = 0;
+    tgtX[i] = 0; tgtY[i] = 0;
+    const card = cards[i];
+    card.style.transition = 'opacity .35s ease, transform .45s ease';
+    card.style.opacity    = '0';
+    card.style.transform  = `translate(${cfg.tx * .25}px, ${cfg.ty * .25}px) rotate(${cfg.rot * .4}deg) scale(0.5)`;
+  });
+});
+</script>

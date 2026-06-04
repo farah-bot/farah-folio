@@ -1,0 +1,125 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { supabase, type Project } from '../lib/supabase';
+
+const { data } = await supabase.from('projects').select('*').order('order_index');
+const projects: Project[] = data ?? [];
+const categories = ['All', ...Array.from(new Set(projects.map(p => p.category)))];
+
+const portfolioSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Projects — Farah Fairuz',
+  description: 'A portfolio of web development, mobile, IoT, and UI/UX projects.',
+  url: 'https://farahfairuz.dev/projects',
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: projects.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: p.title,
+      description: p.description,
+      url: `https://farahfairuz.dev/projects/${p.id}`,
+    })),
+  },
+};
+---
+
+<Layout
+  title="Projects"
+  page="projects"
+  description="A collection of projects spanning web development, mobile apps, IoT systems, cloud computing, and UI/UX design."
+  jsonLd={portfolioSchema}
+>
+  <div class="page-content">
+
+    <header class="mb-7 animate-fade-up">
+      <p class="text-[11px] font-bold font-display tracking-[0.12em] uppercase text-purple mb-1.5">
+        Selected Work
+      </p>
+      <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-extrabold mb-2.5">Projects</h1>
+
+      <p class="text-sm text-t2 max-w-110 leading-relaxed">
+        Here's what I've been building.
+      </p>
+    </header>
+
+    <nav class="flex gap-2 flex-wrap mb-7 animate-fade-up delay-100" aria-label="Filter projects by category">
+      {categories.map((cat, i) => (
+        <button
+          class={[
+            'filter-btn px-4 py-1.5 rounded-full border font-display text-[13px] font-semibold',
+            'cursor-pointer transition-all duration-200',
+            'focus-visible:outline-2 focus-visible:outline-purple focus-visible:outline-offset-2',
+            i === 0
+              ? 'bg-purple/10 border-purple/30 text-purple-l'
+              : 'bg-transparent border-border text-t2 hover:text-t1 hover:border-border-h',
+          ].join(' ')}
+          data-category={cat}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+          type="button"
+        >
+          {cat}
+        </button>
+      ))}
+    </nav>
+
+    <section aria-label="Project list">
+      <ul
+        class="grid gap-4 animate-fade-up delay-200"
+        style="grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));"
+        id="projects-grid"
+      >
+        {projects.map((project, i) => (
+          <li data-category={project.category}>
+            <ProjectCard
+              id={project.id}
+              title={project.title}
+              description={project.description}
+              category={project.category}
+              tags={project.tags}
+              bgColor={project.bg_color}
+              imageUrl={project.image_url}
+              index={i}
+            />
+          </li>
+        ))}
+      </ul>
+
+      <p class="text-center text-t2 text-sm py-12" id="empty-state" hidden aria-live="polite">
+        No projects in this category.
+      </p>
+    </section>
+
+  </div>
+</Layout>
+
+<script>
+const buttons  = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+const items    = document.querySelectorAll<HTMLElement>('#projects-grid li');
+const emptyMsg = document.getElementById('empty-state') as HTMLElement;
+
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cat = btn.dataset.category ?? 'All';
+    buttons.forEach(b => {
+      const active = b === btn;
+      b.classList.toggle('bg-purple/10',    active);
+      b.classList.toggle('border-purple/30', active);
+      b.classList.toggle('text-purple-l',   active);
+      b.classList.toggle('bg-transparent',  !active);
+      b.classList.toggle('border-border',   !active);
+      b.classList.toggle('text-t2',         !active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    let visible = 0;
+    items.forEach(item => {
+      const show = cat === 'All' || item.dataset.category === cat;
+      if (show) { item.removeAttribute('aria-hidden'); item.style.display = ''; visible++; }
+      else       { item.setAttribute('aria-hidden', 'true'); item.style.display = 'none'; }
+    });
+    emptyMsg.hidden = visible > 0;
+  });
+});
+</script>

@@ -1,11 +1,57 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout        from '../layouts/Layout.astro';
+import HeroGlows     from '../components/Home/HeroGlows.astro';
+import HeroCard      from '../components/Home/HeroCard.astro';
+import FloatingCards from '../components/Home/FloatingCards.astro';
+import HeroSpotlight from '../components/Home/HeroSpotlight.astro';
+import { supabase, type Profile, type Project } from '../lib/supabase';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const [{ data: profile }, { data: projectsRaw }] = await Promise.all([
+  supabase.from('profile').select('*').single<Profile>(),
+  supabase.from('projects').select('*').eq('featured', true).order('order_index').limit(5),
+]);
+
+if (!profile) throw new Error('No profile in DB — run supabase/schema.sql');
+const projects: Project[] = projectsRaw ?? [];
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.role,
+  worksFor: { '@type': 'Organization', name: profile.company, url: profile.company_url },
+  url: 'https://farahfairuz.dev',
+};
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+  title="Home"
+  page="home"
+  description={`${profile.name} — ${profile.role} at ${profile.company}.`}
+  jsonLd={personSchema}
+>
+  <section id="hero" aria-label="Introduction">
+    <HeroGlows />
+    <FloatingCards projects={projects} />
+    <HeroCard
+      name={profile.name}
+      role={profile.role}
+      company={profile.company}
+      company_url={profile.company_url}
+    />
+    <HeroSpotlight />
+  </section>
 </Layout>
+
+<style>
+#hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding-bottom: 96px;
+}
+</style>
