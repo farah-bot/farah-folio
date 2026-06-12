@@ -4,6 +4,7 @@ interface Project {
   category: string;
   title: string;
   tags: string[];
+  image_url?: string;
 }
 
 interface CardConfig {
@@ -40,6 +41,19 @@ const CARD_CFG: CardConfig[] = [
       aria-hidden="true"
     >
       <div class="fc-bg" style={`background:${project.bg_color};`}></div>
+      
+      {project.image_url && (
+        <img
+          src={project.image_url}
+          alt=""
+          class="absolute inset-0 w-full h-full object-cover"
+          width="210"
+          height="145"
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+
       <div class="fc-deco"></div>
       <div class="fc-content">
         <span class="fc-cat">{project.category}</span>
@@ -86,6 +100,7 @@ const CARD_CFG: CardConfig[] = [
   background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%);
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: 12px 14px;
+  z-index: 2;
 }
 .fc-cat {
   font-size: 9px; font-weight: 700; font-family: 'Syne', sans-serif;
