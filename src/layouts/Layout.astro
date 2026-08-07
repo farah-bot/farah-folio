@@ -106,5 +106,45 @@ const NAV = [
     ))}
   </nav>
 
+
+<script>
+import { supabase } from '../lib/supabase';
+
+const portfolioTables = [
+  'profile',
+  'projects',
+  'experience',
+  'skills',
+  'social_links',
+  'software',
+];
+
+let reloadTimer: number | undefined;
+const reloadWithFreshData = () => {
+  window.clearTimeout(reloadTimer);
+  reloadTimer = window.setTimeout(() => window.location.reload(), 250);
+};
+
+const channel = supabase.channel('portfolio-live-updates');
+
+for (const table of portfolioTables) {
+  channel.on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table },
+    reloadWithFreshData,
+  );
+}
+
+channel.subscribe();
+
+window.addEventListener(
+  'pagehide',
+  () => {
+    void supabase.removeChannel(channel);
+  },
+  { once: true },
+);
+</script>
+
 </body>
 </html>

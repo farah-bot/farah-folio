@@ -1,16 +1,8 @@
 ---
+export const prerender = false;
+
 import Layout from '../../layouts/Layout.astro';
 import { supabase, type Project } from '../../lib/supabase';
-
-export async function getStaticPaths() {
-  const { createClient } = await import('@supabase/supabase-js');
-  const url = import.meta.env.PUBLIC_SUPABASE_URL;
-  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return [];
-  const sb = createClient(url, key);
-  const { data } = await sb.from('projects').select('id');
-  return (data ?? []).map(p => ({ params: { id: p.id } }));
-}
 
 const { id } = Astro.params;
 const { data: project } = await supabase
