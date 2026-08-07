@@ -2,30 +2,63 @@
 interface Props {
   name: string;
   role: string;
-  company: string;
-  company_url: string;
+  company?: string;
+  company_url?: string;
 }
 
 const { name, role, company, company_url } = Astro.props;
 const firstName = name.split(' ')[0];
+
+const hasCompany = Boolean(company?.trim());
+const hasCompanyUrl = hasCompany && Boolean(company_url?.trim());
 ---
 
 <div id="hero-card" role="presentation">
   <div class="hero-text">
-    <p>Hey, I'm&nbsp;<span class="pill pill-purple">{firstName}&nbsp;👩🏻‍💻</span></p>
-    <p>I'm a&nbsp;<span class="pill pill-orange">{role.toLowerCase()},</span></p>
+
     <p>
-      currently at&nbsp;
-      <a
-        href={company_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="pill pill-green burst-origin"
-        aria-label={`${company} - external link`}
-      >
-        {company}&nbsp;↗
-      </a>
+      Hey, I'm&nbsp;
+      <span class="pill pill-purple">
+        {firstName}&nbsp;👩🏻‍💻
+      </span>
     </p>
+
+    <p>
+      I'm a&nbsp;
+      <span class="pill pill-orange">
+        {role.toLowerCase()},
+      </span>
+    </p>
+
+    {hasCompany ? (
+      <p>
+        currently at&nbsp;
+
+        {hasCompanyUrl ? (
+          <a
+            href={company_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pill pill-green burst-origin"
+            aria-label={`${company} - external link`}
+          >
+            {company}&nbsp;↗
+          </a>
+        ) : (
+          <span class="pill pill-green">
+            {company}
+          </span>
+        )}
+      </p>
+    ) : (
+      <p>
+        and a&nbsp;
+        <span class="pill pill-green">
+          tech enthusiast
+        </span>
+      </p>
+    )}
+
   </div>
 </div>
 

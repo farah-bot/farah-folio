@@ -19,6 +19,9 @@ const experience = eRes.data ?? [];
 const skills     = sRes.data ?? [];
 const socials    = slRes.data ?? [];
 
+const hasCompany    = Boolean(profile.company?.trim());
+const hasCompanyUrl = hasCompany && Boolean(profile.company_url?.trim());
+
 const SOCIAL_ICONS: Record<string, string> = {
   Email: '✉', LinkedIn: 'in', GitHub: '⌂',
   Twitter: '𝕏', Instagram: '◎', 'Read.cv': '◉', Portfolio: '🌐',
@@ -31,7 +34,13 @@ const personSchema = {
   jobTitle: profile.role,
   description: profile.bio_intro,
   url: 'https://farahfairuz.dev/about',
-  worksFor: { '@type': 'Organization', name: profile.company },
+  ...(hasCompany ? {
+    worksFor: {
+      '@type': 'Organization',
+      name: profile.company,
+      ...(hasCompanyUrl ? { url: profile.company_url } : {}),
+    },
+  } : {}),
   alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Jember' },
   knowsAbout: skills.map(s => s.name),
 };
@@ -65,8 +74,10 @@ const personSchema = {
 
           <p class="font-display font-bold text-[1.1rem] mb-2">Hey again 👋</p>
           <p class="text-[0.82rem] text-t2 leading-relaxed mb-3.5">
-            I'm currently at {profile.company}, building software, fixing bugs,
-            and enjoying the process of making things work.
+            {hasCompany
+              ? <>I'm currently at {profile.company}, building software, fixing bugs, and enjoying the process of making things work.</>
+              : <>I'm a software development enthusiast who enjoys building things, exploring new ideas, and continuously improving my skills.</>
+            }
           </p>
 
           <div class="flex gap-1.5 flex-wrap">
@@ -78,22 +89,34 @@ const personSchema = {
               </svg>
               {profile.location}
             </span>
-            <a
-              href={profile.company_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
-                     bg-s2 border border-border text-[11px] font-semibold text-t2
-                     transition-all hover:text-t1 hover:border-border-h"
-              aria-label={`${profile.company} — external link`}
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="7" width="20" height="14" rx="2"/>
-                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                <line x1="12" y1="12" x2="12" y2="12.01"/>
-              </svg>
-              {profile.company}
-            </a>
+            {hasCompany && (
+              hasCompanyUrl
+                ? <a
+                    href={profile.company_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                           bg-s2 border border-border text-[11px] font-semibold text-t2
+                           transition-all hover:text-t1 hover:border-border-h"
+                    aria-label={`${profile.company} — external link`}
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="2" y="7" width="20" height="14" rx="2"/>
+                      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                      <line x1="12" y1="12" x2="12" y2="12.01"/>
+                    </svg>
+                    {profile.company}
+                  </a>
+                : <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                               bg-s2 border border-border text-[11px] font-semibold text-t2">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="2" y="7" width="20" height="14" rx="2"/>
+                      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                      <line x1="12" y1="12" x2="12" y2="12.01"/>
+                    </svg>
+                    {profile.company}
+                  </span>
+            )}
           </div>
         </div>
 

@@ -15,13 +15,21 @@ const [{ data: profile }, { data: projectsRaw }] = await Promise.all([
 
 if (!profile) throw new Error('No profile in DB — run supabase/schema.sql');
 const projects: Project[] = projectsRaw ?? [];
+const hasCompany = Boolean(profile.company?.trim());
+const hasCompanyUrl = hasCompany && Boolean(profile.company_url?.trim());
 
 const personSchema = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: profile.name,
   jobTitle: profile.role,
-  worksFor: { '@type': 'Organization', name: profile.company, url: profile.company_url },
+  ...(hasCompany ? {
+    worksFor: {
+      '@type': 'Organization',
+      name: profile.company,
+      ...(hasCompanyUrl ? { url: profile.company_url } : {}),
+    },
+  } : {}),
   url: 'https://farahfairuz.dev',
 };
 ---
@@ -29,7 +37,10 @@ const personSchema = {
 <Layout
   title="Home"
   page="home"
-  description={`${profile.name} — ${profile.role} at ${profile.company}.`}
+  description={hasCompany
+    ? `${profile.name} — ${profile.role} at ${profile.company}.`
+    : `${profile.name} — ${profile.role} and software development enthusiast.`
+  }
   jsonLd={personSchema}
 >
   <section id="hero" aria-label="Introduction">
