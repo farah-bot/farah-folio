@@ -4,6 +4,7 @@ export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import SkillsScatter from '../components/AboutMe/SkillsScatter.astro';
 import SoftwareMarquee from '../components/AboutMe/SoftwareMarquee.astro';
+import GitHubContributions from '../components/AboutMe/GitHubContributions.astro';
 import { supabase, type Profile, type Experience, type Skill, type SocialLink } from '../lib/supabase';
 
 const [pRes, eRes, sRes, slRes] = await Promise.all([
@@ -178,6 +179,8 @@ const personSchema = {
           <h2 id="skills-heading" class="text-base font-bold mb-4">Skills</h2>
           <SkillsScatter skills={skills} />
         </section>
+
+        <GitHubContributions username="farah-bot" />
 
         <section class="surface-card p-7 animate-fade-up delay-400" aria-labelledby="contact-heading">
           <h2 id="contact-heading" class="text-base font-bold mb-4">Come and say hi!</h2>
