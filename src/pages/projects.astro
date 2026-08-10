@@ -14,7 +14,7 @@ const portfolioSchema = {
   '@type': 'CollectionPage',
   name: 'Projects — Farah Fairuz',
   description: 'A portfolio of web development, mobile, IoT, and UI/UX projects.',
-  url: 'https://farahfairuz.dev/projects',
+  url: 'https://farah-folio.vercel.app/projects',
   mainEntity: {
     '@type': 'ItemList',
     itemListElement: projects.map((p, i) => ({
@@ -22,7 +22,7 @@ const portfolioSchema = {
       position: i + 1,
       name: p.title,
       description: p.description,
-      url: `https://farahfairuz.dev/projects/${p.id}`,
+      url: `https://farah-folio.vercel.app/projects/${p.id}`,
     })),
   },
 };
