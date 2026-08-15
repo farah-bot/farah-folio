@@ -63,7 +63,7 @@ const personSchema = profile ? {
   title="About Me"
   page="about"
   description={profile
-    ? `${profile.name} — ${profile.role}. ${profile.bio_intro.substring(0, 120)}...`
+    ? `${profile.name} — ${profile.role}. ${profile.bio_intro}`
     : 'About Farah Fairuz.'
   }
   jsonLd={personSchema}
