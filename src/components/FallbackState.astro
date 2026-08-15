@@ -30,13 +30,13 @@ const cfg = CONFIG[type];
 ---
 
 {fullscreen ? (
-  <div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6" role="alert" aria-live="polite">
-    <p class="font-display font-extrabold text-[clamp(3rem,10vw,5rem)] leading-none text-purple" aria-hidden="true">{cfg.icon}</p>
-    <h1 class="font-display font-extrabold text-xl text-t1">{title ?? cfg.defaultTitle}</h1>
-    <p class="text-sm text-t2 max-w-90">{message ?? cfg.defaultMessage}</p>
+  <div class="fallback-root min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6" role="alert" aria-live="polite">
+    <p class="fallback-icon font-display font-extrabold text-[clamp(3rem,10vw,5rem)] leading-none text-purple" aria-hidden="true">{cfg.icon}</p>
+    <h1 class="fallback-item font-display font-extrabold text-xl text-t1">{title ?? cfg.defaultTitle}</h1>
+    <p class="fallback-item text-sm text-t2 max-w-90">{message ?? cfg.defaultMessage}</p>
     <a
       href="/"
-      class="mt-2 inline-flex items-center px-5 py-2.5 rounded-[10px] bg-purple text-white
+      class="fallback-item mt-2 inline-flex items-center px-5 py-2.5 rounded-[10px] bg-purple text-white
              font-display font-bold text-sm transition-opacity hover:opacity-85"
     >
       Back to home
@@ -44,12 +44,37 @@ const cfg = CONFIG[type];
   </div>
 ) : (
   <div
-    class="flex flex-col items-center justify-center gap-2 py-16 px-6 text-center"
+    class="fallback-root flex flex-col items-center justify-center gap-2 py-16 px-6 text-center"
     role={type === 'error' ? 'alert' : 'status'}
     aria-live="polite"
   >
-    <span class="text-2xl mb-1 text-t3" aria-hidden="true">{cfg.icon}</span>
-    <p class="font-display font-extrabold text-base text-t1">{title ?? cfg.defaultTitle}</p>
-    <p class="text-sm text-t2 max-w-80">{message ?? cfg.defaultMessage}</p>
+    <span class="fallback-icon text-2xl mb-1 text-t3" aria-hidden="true">{cfg.icon}</span>
+    <p class="fallback-item font-display font-extrabold text-base text-t1">{title ?? cfg.defaultTitle}</p>
+    <p class="fallback-item text-sm text-t2 max-w-80">{message ?? cfg.defaultMessage}</p>
   </div>
 )}
+
+<script>
+import { animate, stagger } from 'motion';
+
+document.querySelectorAll<HTMLElement>('.fallback-root').forEach(root => {
+  const icon = root.querySelector<HTMLElement>('.fallback-icon');
+  const items = Array.from(root.querySelectorAll<HTMLElement>('.fallback-item'));
+
+  if (icon) {
+    animate(
+      icon,
+      { opacity: [0, 1], scale: [0.6, 1.08, 1], rotate: [-8, 2, 0] },
+      { duration: 0.6, ease: [0.34, 1.2, 0.64, 1] }
+    );
+  }
+
+  if (items.length) {
+    animate(
+      items,
+      { opacity: [0, 1], y: [10, 0] },
+      { duration: 0.55, delay: stagger(0.1, { startDelay: 0.15 }), ease: [0.34, 1.2, 0.64, 1] }
+    );
+  }
+});
+</script>

@@ -3,16 +3,40 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Page Not Found" page="home" description="The page you are looking for does not exist.">
-  <div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6">
-    <p class="font-display font-extrabold text-[clamp(3rem,10vw,5rem)] leading-none text-purple">404</p>
-    <h1 class="font-display font-extrabold text-xl text-t1">Page not found</h1>
-    <p class="text-sm text-t2 max-w-90">The page you are looking for does not exist or has been moved.</p>
+  <div class="fallback-root min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6">
+    <p class="fallback-icon font-display font-extrabold text-[clamp(3rem,10vw,5rem)] leading-none text-purple">404</p>
+    <h1 class="fallback-item font-display font-extrabold text-xl text-t1">Page not found</h1>
+    <p class="fallback-item text-sm text-t2 max-w-90">The page you are looking for does not exist or has been moved.</p>
     <a
       href="/"
-      class="mt-2 inline-flex items-center px-5 py-2.5 rounded-[10px] bg-purple text-white
+      class="fallback-item mt-2 inline-flex items-center px-5 py-2.5 rounded-[10px] bg-purple text-white
              font-display font-bold text-sm transition-opacity hover:opacity-85"
     >
       Back to home
     </a>
   </div>
 </Layout>
+
+<script>
+import { animate, stagger } from 'motion';
+
+const root = document.querySelector<HTMLElement>('.fallback-root');
+const icon = root?.querySelector<HTMLElement>('.fallback-icon');
+const items = root ? Array.from(root.querySelectorAll<HTMLElement>('.fallback-item')) : [];
+
+if (icon) {
+  animate(
+    icon,
+    { opacity: [0, 1], scale: [0.6, 1.08, 1], rotate: [-8, 2, 0] },
+    { duration: 0.6, ease: [0.34, 1.2, 0.64, 1] }
+  );
+}
+
+if (items.length) {
+  animate(
+    items,
+    { opacity: [0, 1], y: [10, 0] },
+    { duration: 0.55, delay: stagger(0.1, { startDelay: 0.15 }), ease: [0.34, 1.2, 0.64, 1] }
+  );
+}
+</script>
