@@ -1,0 +1,55 @@
+---
+interface Props {
+  type: 'loading' | 'empty' | 'error';
+  title?: string;
+  message?: string;
+  fullscreen?: boolean;
+}
+
+const { type, title, message, fullscreen = false } = Astro.props;
+
+const CONFIG = {
+  loading: {
+    icon: '◌',
+    defaultTitle: 'Loading',
+    defaultMessage: 'Please wait a moment.',
+  },
+  empty: {
+    icon: '◯',
+    defaultTitle: 'Nothing here yet',
+    defaultMessage: 'There is no data to show right now.',
+  },
+  error: {
+    icon: '✕',
+    defaultTitle: 'Something went wrong',
+    defaultMessage: 'We could not load this content. Please try again later.',
+  },
+};
+
+const cfg = CONFIG[type];
+---
+
+{fullscreen ? (
+  <div class="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6" role="alert" aria-live="polite">
+    <p class="font-display font-extrabold text-[clamp(3rem,10vw,5rem)] leading-none text-purple" aria-hidden="true">{cfg.icon}</p>
+    <h1 class="font-display font-extrabold text-xl text-t1">{title ?? cfg.defaultTitle}</h1>
+    <p class="text-sm text-t2 max-w-90">{message ?? cfg.defaultMessage}</p>
+    <a
+      href="/"
+      class="mt-2 inline-flex items-center px-5 py-2.5 rounded-[10px] bg-purple text-white
+             font-display font-bold text-sm transition-opacity hover:opacity-85"
+    >
+      Back to home
+    </a>
+  </div>
+) : (
+  <div
+    class="flex flex-col items-center justify-center gap-2 py-16 px-6 text-center"
+    role={type === 'error' ? 'alert' : 'status'}
+    aria-live="polite"
+  >
+    <span class="text-2xl mb-1 text-t3" aria-hidden="true">{cfg.icon}</span>
+    <p class="font-display font-extrabold text-base text-t1">{title ?? cfg.defaultTitle}</p>
+    <p class="text-sm text-t2 max-w-80">{message ?? cfg.defaultMessage}</p>
+  </div>
+)}

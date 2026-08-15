@@ -1,24 +1,36 @@
 ---
 export const prerender = false;
 
-import Layout        from '../layouts/Layout.astro';
-import HeroGlows     from '../components/Home/HeroGlows.astro';
-import HeroCard      from '../components/Home/HeroCard.astro';
+import Layout from '../layouts/Layout.astro';
+import HeroGlows from '../components/Home/HeroGlows.astro';
+import HeroCard from '../components/Home/HeroCard.astro';
 import FloatingCards from '../components/Home/FloatingCards.astro';
 import HeroSpotlight from '../components/Home/HeroSpotlight.astro';
+import FallbackState from '../components/FallbackState.astro';
 import { supabase, type Profile, type Project } from '../lib/supabase';
 
-const [{ data: profile }, { data: projectsRaw }] = await Promise.all([
-  supabase.from('profile').select('*').single<Profile>(),
-  supabase.from('projects').select('*').eq('featured', true).order('order_index').limit(5),
-]);
+let profile: Profile | null = null;
+let projects: Project[] = [];
+let loadError = false;
 
-if (!profile) throw new Error('No profile in DB — run supabase/schema.sql');
-const projects: Project[] = projectsRaw ?? [];
-const hasCompany = Boolean(profile.company?.trim());
-const hasCompanyUrl = hasCompany && Boolean(profile.company_url?.trim());
+try {
+  const [{ data: profileData, error: profileError }, { data: projectsRaw }] = await Promise.all([
+    supabase.from('profile').select('*').single<Profile>(),
+    supabase.from('projects').select('*').eq('featured', true).order('order_index').limit(5),
+  ]);
 
-const personSchema = {
+  if (profileError) throw profileError;
+
+  profile = profileData;
+  projects = projectsRaw ?? [];
+} catch {
+  loadError = true;
+}
+
+const hasCompany = Boolean(profile?.company?.trim());
+const hasCompanyUrl = hasCompany && Boolean(profile?.company_url?.trim());
+
+const personSchema = profile ? {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: profile.name,
@@ -31,29 +43,40 @@ const personSchema = {
     },
   } : {}),
   url: 'https://farah-folio.vercel.app',
-};
+} : undefined;
 ---
 
 <Layout
   title="Home"
   page="home"
-  description={hasCompany
-    ? `${profile.name} — ${profile.role} at ${profile.company}.`
-    : `${profile.name} — ${profile.role} and software development enthusiast.`
+  description={profile
+    ? hasCompany
+      ? `${profile.name} — ${profile.role} at ${profile.company}.`
+      : `${profile.name} — ${profile.role} and software development enthusiast.`
+    : 'Farah Fairuz — Developer & Designer.'
   }
   jsonLd={personSchema}
 >
-  <section id="hero" aria-label="Introduction">
-    <HeroGlows />
-    <FloatingCards projects={projects} />
-    <HeroCard
-      name={profile.name}
-      role={profile.role}
-      company={profile.company}
-      company_url={profile.company_url}
+  {loadError || !profile ? (
+    <FallbackState
+      type="error"
+      fullscreen
+      title="Unable to load profile"
+      message="Something went wrong while loading this page. Please try again shortly."
     />
-    <HeroSpotlight />
-  </section>
+  ) : (
+    <section id="hero" aria-label="Introduction">
+      <HeroGlows />
+      <FloatingCards projects={projects} />
+      <HeroCard
+        name={profile.name}
+        role={profile.role}
+        company={profile.company}
+        company_url={profile.company_url}
+      />
+      <HeroSpotlight />
+    </section>
+  )}
 </Layout>
 
 <style>
