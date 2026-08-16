@@ -16,16 +16,16 @@ if (!project) {
   return Astro.redirect('/projects', 302);
 }
 
-const TYPE_LABELS: Record<ProjectType, string> = {
-  internship: 'Internship',
-  personal: 'Personal',
-  academic: 'Academic',
+const TYPE_SLUG: Record<ProjectType, string> = {
+  internship: 'internship',
+  personal: 'personal',
+  academic: 'academic',
 };
 
-const TYPE_STYLES: Record<ProjectType, string> = {
-  internship: 'bg-orange/10 border-orange/25 text-orange',
-  personal: 'bg-green/10 border-green/25 text-green',
-  academic: 'bg-purple/10 border-purple/25 text-purple-l',
+const TYPE_ACCENT: Record<ProjectType, string> = {
+  internship: 'text-orange',
+  personal: 'text-green',
+  academic: 'text-purple-l',
 };
 
 type OverviewBlock =
@@ -229,6 +229,14 @@ const projectSchema = {
         )
       }
 
+      <span
+        class="absolute top-4 left-4 z-10 inline-flex items-center gap-0.5 px-3 py-1.5
+               rounded-lg font-mono text-[12px] font-semibold text-white/90
+               bg-black/40 backdrop-blur-md border border-white/10"
+      >
+        <span class={TYPE_ACCENT[project.project_type]}>&lt;</span>{TYPE_SLUG[project.project_type]}<span class={TYPE_ACCENT[project.project_type]}>/&gt;</span>
+      </span>
+
       <figcaption
         class="relative z-10 w-full px-7 py-6"
         style="background:linear-gradient(
@@ -277,16 +285,6 @@ const projectSchema = {
                text-purple-l"
       >
         {project.category}
-      </span>
-
-      <span
-        role="listitem"
-        class={`inline-flex items-center px-3 py-1
-               rounded-md text-[11px] font-bold
-               tracking-widest uppercase font-display
-               border ${TYPE_STYLES[project.project_type]}`}
-      >
-        {TYPE_LABELS[project.project_type]}
       </span>
     </div>
 
