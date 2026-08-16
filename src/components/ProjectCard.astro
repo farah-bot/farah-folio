@@ -1,4 +1,6 @@
 ---
+import type { ProjectType } from '../lib/supabase';
+
 interface Props {
   id: string;
   title: string;
@@ -8,9 +10,22 @@ interface Props {
   bgColor: string;
   imageUrl?: string;
   index?: number;
+  projectType: ProjectType;
 }
 
-const { id, title, description, category, tags, bgColor, imageUrl, index = 0 } = Astro.props;
+const { id, title, description, category, tags, bgColor, imageUrl, index = 0, projectType } = Astro.props;
+
+const TYPE_LABELS: Record<ProjectType, string> = {
+  internship: 'Internship',
+  personal: 'Personal',
+  academic: 'Academic',
+};
+
+const TYPE_STYLES: Record<ProjectType, string> = {
+  internship: 'bg-orange/10 border-orange/25 text-orange',
+  personal: 'bg-green/10 border-green/25 text-green',
+  academic: 'bg-purple/10 border-purple/25 text-purple-l',
+};
 ---
 
 <a
@@ -60,9 +75,14 @@ const { id, title, description, category, tags, bgColor, imageUrl, index = 0 } =
   </figure>
 
   <div class="p-5">
-    <span class="block text-[11px] font-bold font-display text-t2 tracking-[0.06em] uppercase mb-2">
-      {category}
-    </span>
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <span class="text-[11px] font-bold font-display text-t2 tracking-[0.06em] uppercase">
+        {category}
+      </span>
+      <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-display tracking-[0.04em] border ${TYPE_STYLES[projectType]}`}>
+        {TYPE_LABELS[projectType]}
+      </span>
+    </div>
     <h2 class="text-[1.1rem] font-bold font-display mb-1.5 leading-snug">{title}</h2>
     <p class="text-sm text-t2 leading-relaxed mb-3">{description}</p>
 

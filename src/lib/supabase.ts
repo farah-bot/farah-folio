@@ -23,6 +23,8 @@ export interface Profile {
   avatar_url?: string;
 }
 
+export type ProjectType = 'internship' | 'personal' | 'academic';
+
 export interface Project {
   id: string;
   title: string;
@@ -35,6 +37,7 @@ export interface Project {
   featured: boolean;
   order_index: number;
   case_study_url?: string;
+  project_type: ProjectType;
 }
 
 export interface Experience {
