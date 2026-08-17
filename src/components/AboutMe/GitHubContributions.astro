@@ -27,34 +27,6 @@ const contributionUrl = `https://ghchart.rshah.org/7c3aed/${username}`;
       </p>
     </div>
 
-    <a
-      href={githubUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-flex items-center gap-1.5 px-3 py-1.5
-             rounded-lg bg-s2 border border-border
-             text-xs font-semibold text-t2 shrink-0
-             transition-all duration-200
-             hover:text-t1 hover:border-border-h"
-      aria-label={`View ${username} on GitHub`}
-    >
-      GitHub
-
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M7 17 17 7" />
-        <path d="M7 7h10v10" />
-      </svg>
-    </a>
   </div>
 
   <a
@@ -65,8 +37,10 @@ const contributionUrl = `https://ghchart.rshah.org/7c3aed/${username}`;
     aria-label={`View ${username}'s GitHub contributions`}
   >
     <div
+      id="github-chart-tile"
       class="github-chart w-full min-w-0 rounded-xl border border-border
-             bg-s2 overflow-hidden"
+             bg-s2 overflow-hidden will-change-transform"
+      style="perspective:900px; transform-style: preserve-3d;"
     >
       <div class="w-full p-4">
         <img
@@ -84,14 +58,58 @@ const contributionUrl = `https://ghchart.rshah.org/7c3aed/${username}`;
     </div>
   </a>
 
-  <div class="flex items-center gap-2 mt-4">
-    <span
-      class="w-2 h-2 rounded-full bg-purple shrink-0"
-      aria-hidden="true"
-    ></span>
-
-    <span class="text-[11px] text-t2">
-      @{username}
-    </span>
-  </div>
 </section>
+
+
+<script>
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const tile = document.getElementById('github-chart-tile');
+
+if (tile && !reduceMotion) {
+  const STIFFNESS = 0.12;
+  const DAMPING = 0.78;
+
+  let rx = 0;
+  let ry = 0;
+  let vrx = 0;
+  let vry = 0;
+  let targetRx = 0;
+  let targetRy = 0;
+  let raf: number | null = null;
+
+  function loop() {
+    vrx = (vrx + (targetRx - rx) * STIFFNESS) * DAMPING;
+    vry = (vry + (targetRy - ry) * STIFFNESS) * DAMPING;
+    rx += vrx;
+    ry += vry;
+    tile!.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+
+    const settled =
+      Math.abs(vrx) < 0.01 &&
+      Math.abs(vry) < 0.01 &&
+      Math.abs(targetRx - rx) < 0.01 &&
+      Math.abs(targetRy - ry) < 0.01;
+
+    raf = settled ? null : requestAnimationFrame(loop);
+  }
+
+  function ensureLoop() {
+    if (!raf) raf = requestAnimationFrame(loop);
+  }
+
+  tile.addEventListener('pointermove', (e: PointerEvent) => {
+    const rect = tile!.getBoundingClientRect();
+    const relX = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+    const relY = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+    targetRx = relY * -6;
+    targetRy = relX * 6;
+    ensureLoop();
+  });
+
+  tile.addEventListener('pointerleave', () => {
+    targetRx = 0;
+    targetRy = 0;
+    ensureLoop();
+  });
+}
+</script>

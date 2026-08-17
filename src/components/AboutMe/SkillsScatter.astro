@@ -42,8 +42,8 @@ const floatAnims = [
     return (
       <div
         role="listitem"
-        class={`absolute inline-flex flex-col items-start cursor-default ${anim.cls} hover:z-10 hover:[animation-play-state:paused]`}
-        style={`left:${pos.x}%; top:${pos.y}%; animation-delay:${anim.del};`}
+        class={`absolute inline-flex flex-col items-start cursor-default will-change-transform ${anim.cls} hover:z-10 hover:[animation-play-state:paused]`}
+        style={`left:${pos.x}%; top:${pos.y}%; animation-delay:${anim.del}; animation-duration:7s; animation-timing-function:cubic-bezier(0.45,0,0.55,1);`}
         aria-label={skill.name}
       >
         <span

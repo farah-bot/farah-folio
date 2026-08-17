@@ -6,18 +6,20 @@ const software: Software[] = data ?? [];
 const doubled = [...software, ...software];
 ---
 
-<div class="marquee-wrap overflow-hidden" role="region" aria-label="Software tools">
+<div class="marquee-wrap overflow-hidden" role="region" aria-label="Software tools" style="perspective:700px;">
   <ul
     class="flex gap-2 w-max list-none p-0 m-3 motion-safe:animate-marquee motion-safe:hover:[animation-play-state:paused]"
     aria-label="Software list"
   >
     {doubled.map((tool, i) => (
       <li
-        class="relative flex items-center justify-center w-16 h-16 shrink-0
+        class="tool-tile relative flex items-center justify-center w-16 h-16 shrink-0
                rounded-2xl bg-white/4 border border-white/8 cursor-default
-               transition-all duration-200
-               hover:scale-110 hover:-translate-y-1 hover:bg-white/8 hover:border-white/18
-               group"
+               transition-colors duration-200
+               hover:bg-white/8 hover:border-white/18
+               group will-change-transform"
+        style="transform-style: preserve-3d;"
+        data-name={i < software.length ? tool.name : ''}
         aria-hidden={i >= software.length ? 'true' : undefined}
       >
         <img
@@ -28,6 +30,7 @@ const doubled = [...software, ...software];
           loading="lazy"
           decoding="async"
           class="block select-none pointer-events-none"
+          style="transform: translateZ(18px);"
         />
         <span
           class="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 translate-y-1.5
@@ -45,3 +48,95 @@ const doubled = [...software, ...software];
     ))}
   </ul>
 </div>
+
+<script>
+interface TiltState {
+  el: HTMLElement;
+  rx: number;
+  ry: number;
+  scale: number;
+  vrx: number;
+  vry: number;
+  vscale: number;
+  trx: number;
+  tryv: number;
+  tscale: number;
+  raf: number | null;
+}
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+if (!reduceMotion) {
+  const STIFFNESS = 0.14;
+  const DAMPING = 0.72;
+
+  const tiles = Array.from(document.querySelectorAll<HTMLLIElement>('.tool-tile'));
+
+  const states: TiltState[] = tiles.map((el) => ({
+    el,
+    rx: 0,
+    ry: 0,
+    scale: 1,
+    vrx: 0,
+    vry: 0,
+    vscale: 0,
+    trx: 0,
+    tryv: 0,
+    tscale: 1,
+    raf: null,
+  }));
+
+  function loop(state: TiltState) {
+    state.vrx = (state.vrx + (state.trx - state.rx) * STIFFNESS) * DAMPING;
+    state.vry = (state.vry + (state.tryv - state.ry) * STIFFNESS) * DAMPING;
+    state.vscale = (state.vscale + (state.tscale - state.scale) * STIFFNESS) * DAMPING;
+    state.rx += state.vrx;
+    state.ry += state.vry;
+    state.scale += state.vscale;
+    state.el.style.transform = `rotateX(${state.rx}deg) rotateY(${state.ry}deg) scale(${state.scale})`;
+
+    const settled =
+      Math.abs(state.vrx) < 0.01 &&
+      Math.abs(state.vry) < 0.01 &&
+      Math.abs(state.vscale) < 0.001 &&
+      Math.abs(state.trx - state.rx) < 0.01 &&
+      Math.abs(state.tryv - state.ry) < 0.01 &&
+      Math.abs(state.tscale - state.scale) < 0.001;
+
+    state.raf = settled ? null : requestAnimationFrame(() => loop(state));
+  }
+
+  function ensureLoop(state: TiltState) {
+    if (!state.raf) state.raf = requestAnimationFrame(() => loop(state));
+  }
+
+  states.forEach((state) => {
+    state.el.addEventListener('pointermove', (e: PointerEvent) => {
+      const rect = state.el.getBoundingClientRect();
+      const relX = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+      const relY = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+      state.trx = relY * -20;
+      state.tryv = relX * 20;
+      state.tscale = 1.12;
+      ensureLoop(state);
+    });
+
+    state.el.addEventListener('pointerleave', () => {
+      state.trx = 0;
+      state.tryv = 0;
+      state.tscale = 1;
+      ensureLoop(state);
+    });
+
+    state.el.addEventListener('pointerdown', () => {
+      state.tscale = 0.86;
+      ensureLoop(state);
+    });
+
+    state.el.addEventListener('pointerup', () => {
+      state.tscale = 1.12;
+      ensureLoop(state);
+    });
+  });
+}
+</script>
