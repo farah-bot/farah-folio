@@ -77,7 +77,7 @@ const personSchema = profile ? {
         message="Something went wrong while loading profile data. Please try again shortly."
       />
     ) : (
-      <div class="grid gap-3 items-start md:grid-cols-[280px_1fr]">
+      <div class="grid grid-cols-1 gap-3 items-start md:grid-cols-[280px_1fr]">
 
         <aside class="flex flex-col gap-2.5 md:sticky md:top-6" aria-label="Profile sidebar">
 
@@ -225,16 +225,16 @@ const personSchema = profile ? {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-border
+                      class="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-border min-w-0
                              bg-s2 transition-all hover:border-border-h hover:translate-x-1"
                       aria-label={`${link.platform}: ${link.url.replace('mailto:', '')}`}
                     >
-                      <span class="text-base w-6 text-center" aria-hidden="true">
+                      <span class="text-base w-6 text-center shrink-0" aria-hidden="true">
                         {SOCIAL_ICONS[link.platform] ?? '🔗'}
                       </span>
-                      <span class="text-[13px] font-semibold min-w-20">{link.platform}</span>
-                      <span class="text-xs text-t2 flex-1">{link.url.replace('mailto:', '')}</span>
-                      <span class="text-t3 text-[13px]" aria-hidden="true">↗</span>
+                      <span class="text-[13px] font-semibold min-w-20 shrink-0">{link.platform}</span>
+                      <span class="text-xs text-t2 flex-1 min-w-0 truncate">{link.url.replace('mailto:', '')}</span>
+                      <span class="text-t3 text-[13px] shrink-0" aria-hidden="true">↗</span>
                     </a>
                   </li>
                 ))}
