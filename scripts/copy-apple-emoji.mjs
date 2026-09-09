@@ -1,4 +1,4 @@
-import { cp, mkdir, access, readFile } from 'node:fs/promises';
+import { cp, mkdir, access, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sourceDir = path.join(__dirname, '../node_modules/emoji-datasource-apple/img/apple/64');
 const destinationDir = path.join(__dirname, '../public/emoji/apple');
 const srcDir = path.join(__dirname, '../src');
+const manifestPath = path.join(__dirname, '../src/lib/emoji-map.generated.json');
 
 const CHAR_ATTR_PATTERN = /char=(?:"([^"]+)"|'([^']+)'|\{['"]([^'"]+)['"]\})/g;
 
@@ -62,6 +63,7 @@ async function main() {
   const usedEmoji = await findUsedEmoji();
   await mkdir(destinationDir, { recursive: true });
 
+  const resolvedMap = {};
   let copied = 0;
 
   for (const [char, foundIn] of usedEmoji) {
@@ -82,10 +84,13 @@ async function main() {
     }
 
     await cp(sourceFile, destinationFile);
+    resolvedMap[char] = file;
     copied += 1;
   }
 
-  console.log(`[copy-apple-emoji] Ditemukan ${usedEmoji.size} emoji terpakai, ${copied} aset tersalin.`);
+  await writeFile(manifestPath, `${JSON.stringify(resolvedMap, null, 2)}\n`, 'utf-8');
+
+  console.log(`[copy-apple-emoji] Ditemukan ${usedEmoji.size} emoji terpakai, ${copied} aset tersalin, manifest ditulis ke src/lib/emoji-map.generated.json.`);
 }
 
 main().catch((error) => {
