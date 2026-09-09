@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Layout from '../../layouts/Layout.astro';
+import { ExternalLink } from 'lucide-astro';
 import { supabase, type Project, type ProjectType } from '../../lib/supabase';
 
 const { id } = Astro.params;
@@ -74,14 +75,12 @@ function parseOverview(value: string): OverviewBlock[] {
   for (const rawLine of lines) {
     const line = rawLine.trim();
 
-    // Empty line
     if (!line) {
       flushParagraph();
       flushList();
       continue;
     }
 
-    // Heading: ## Heading
     if (line.startsWith('## ')) {
       flushParagraph();
       flushList();
@@ -94,7 +93,6 @@ function parseOverview(value: string): OverviewBlock[] {
       continue;
     }
 
-    // Bullet: - item or • item
     if (/^[-•]\s+/.test(line)) {
       flushParagraph();
 
@@ -105,7 +103,6 @@ function parseOverview(value: string): OverviewBlock[] {
       continue;
     }
 
-    // If previous block was list, close it
     if (listItems.length) {
       flushList();
     }
@@ -365,12 +362,13 @@ const projectSchema = {
           rel="noopener noreferrer"
           class="inline-flex items-center gap-2
                  px-6 py-3 bg-purple text-white
-                 rounded-[10px] font-display
+                 rounded-full font-display
                  text-sm font-semibold mb-7
                  transition-opacity hover:opacity-85"
           aria-label={`View full case study for ${project.title} — external link`}
         >
-          View Case Study ↗
+          View Case Study
+          <ExternalLink size={16} aria-hidden="true" />
         </a>
       )
     }

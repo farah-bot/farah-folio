@@ -1,4 +1,6 @@
 ---
+import Emoji from '../Emoji.astro';
+
 interface Props {
   name: string;
   role: string;
@@ -19,7 +21,7 @@ const hasCompanyUrl = hasCompany && Boolean(company_url?.trim());
     <p>
       Hey, I'm&nbsp;
       <span class="pill pill-purple">
-        {firstName}&nbsp;👩🏻‍💻
+        {firstName}&nbsp;<Emoji char="👩🏻‍💻" label="woman developer" size="1em" />
       </span>
     </p>
 

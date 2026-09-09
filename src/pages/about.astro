@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
+import Emoji from '../components/Emoji.astro';
 import SkillsScatter from '../components/AboutMe/SkillsScatter.astro';
 import SoftwareMarquee from '../components/AboutMe/SoftwareMarquee.astro';
 import GitHubContributions from '../components/AboutMe/GitHubContributions.astro';
@@ -92,11 +93,13 @@ const personSchema = profile ? {
                     loading="lazy" decoding="async"
                     class="w-full h-full object-cover"
                   />
-                : <span class="text-6xl" role="img" aria-label="Developer emoji">👩🏻‍💻</span>
+                : <Emoji char="👩🏻‍💻" label="Developer emoji" size={64} />
               }
             </div>
 
-            <p class="font-display font-bold text-[1.1rem] mb-2">Hey again 👋</p>
+            <p class="font-display font-bold text-[1.1rem] mb-2">
+              Hey again <Emoji char="👋" label="waving hand" size="1.1em" />
+            </p>
             <p class="text-[0.82rem] text-t2 leading-relaxed mb-3.5">
               {hasCompany
                 ? <>I'm currently at {profile.company}, building software, fixing bugs, and enjoying the process of making things work.</>

@@ -1,0 +1,38 @@
+---
+import { resolveAppleEmojiFile } from '../lib/emoji';
+
+interface Props {
+  char: string;
+  label: string;
+  size?: number | string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { char, label, size = '1em', class: className, loading = 'lazy' } = Astro.props;
+const file = resolveAppleEmojiFile(char);
+const dimension = typeof size === 'number' ? `${size}px` : size;
+
+if (import.meta.env.DEV && !file) {
+  console.warn(`[Emoji] Tidak ada aset Apple emoji untuk "${char}" (label: "${label}"). Menampilkan fallback native.`);
+}
+---
+
+{file ? (
+  <img
+    src={`/emoji/apple/${file}`}
+    alt={label}
+    loading={loading}
+    decoding="async"
+    class={`inline-block align-[-0.125em] select-none aspect-square ${className ?? ''}`}
+    style={`width:${dimension};height:${dimension};`}
+    onerror={`this.replaceWith(document.createTextNode(${JSON.stringify(char)}))`}
+  />
+) : (
+  <span
+    role="img"
+    aria-label={label}
+    class={className}
+    style="font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;"
+  >{char}</span>
+)}
