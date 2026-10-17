@@ -7,20 +7,22 @@ import SkillsScatter from '../components/AboutMe/SkillsScatter.astro';
 import SoftwareMarquee from '../components/AboutMe/SoftwareMarquee.astro';
 import GitHubContributions from '../components/AboutMe/GitHubContributions.astro';
 import FallbackState from '../components/FallbackState.astro';
-import { supabase, type Profile, type Experience, type Skill, type SocialLink } from '../lib/supabase';
+import { supabase, type Profile, type Experience, type Skill, type SocialLink, type Software } from '../lib/supabase';
 
 let profile: Profile | null = null;
 let experience: Experience[] = [];
 let skills: Skill[] = [];
 let socials: SocialLink[] = [];
+let software: Software[] = [];
 let loadError = false;
 
 try {
-  const [pRes, eRes, sRes, slRes] = await Promise.all([
+  const [pRes, eRes, sRes, slRes, swRes] = await Promise.all([
     supabase.from('profile').select('*').single<Profile>(),
     supabase.from('experience').select('*').eq('is_visible', true).order('order_index'),
     supabase.from('skills').select('*').order('order_index'),
     supabase.from('social_links').select('*').order('order_index'),
+    supabase.from('software').select('*').order('order_index'),
   ]);
 
   if (pRes.error) throw pRes.error;
@@ -29,6 +31,7 @@ try {
   experience = eRes.data ?? [];
   skills = sRes.data ?? [];
   socials = slRes.data ?? [];
+  software = swRes.data ?? [];
 } catch {
   loadError = true;
 }
@@ -151,7 +154,7 @@ const personSchema = profile ? {
             <h2 id="software-heading" class="text-sm font-bold font-display mb-3.5">
               Software of choice
             </h2>
-            <SoftwareMarquee />
+            <SoftwareMarquee software={software} />
           </section>
 
         </aside>

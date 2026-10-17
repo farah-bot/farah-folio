@@ -1,8 +1,11 @@
 ---
-import { supabase, type Software } from '../../lib/supabase';
+import type { Software } from '../../lib/supabase';
 
-const { data } = await supabase.from('software').select('*').order('order_index');
-const software: Software[] = data ?? [];
+interface Props {
+  software?: Software[];
+}
+
+const { software = [] } = Astro.props;
 const doubled = [...software, ...software];
 ---
 

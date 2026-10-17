@@ -90,7 +90,7 @@ const TYPE_ACCENT: Record<ProjectType, string> = {
     <p class="text-sm text-t2 leading-relaxed mb-3">{description}</p>
 
     <ul class="flex flex-wrap gap-1.5" aria-label="Tags">
-      {tags.map(tag => (
+      {(tags ?? []).map(tag => (
         <li class="tag-chip">{tag}</li>
       ))}
     </ul>

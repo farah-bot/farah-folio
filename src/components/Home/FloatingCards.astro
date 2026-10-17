@@ -59,7 +59,7 @@ const CARD_CFG: CardConfig[] = [
         <span class="fc-cat">{project.category}</span>
         <h3 class="fc-title">{project.title}</h3>
         <div class="fc-tags">
-          {project.tags.slice(0, 2).map(t => (
+          {(project.tags ?? []).slice(0, 2).map(t => (
             <span class="fc-tag">{t}</span>
           ))}
         </div>
