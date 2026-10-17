@@ -3,10 +3,19 @@ export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
+import FallbackState from '../components/FallbackState.astro';
 import { supabase, type Project } from '../lib/supabase';
 
-const { data } = await supabase.from('projects').select('*').order('order_index');
-const projects: Project[] = data ?? [];
+let projects: Project[] = [];
+let loadError = false;
+
+try {
+  const { data, error } = await supabase.from('projects').select('*').order('order_index');
+  if (error) throw error;
+  projects = data ?? [];
+} catch {
+  loadError = true;
+}
 const categories = ['All', ...Array.from(new Set(projects.map(p => p.category)))];
 
 const portfolioSchema = {
@@ -35,7 +44,14 @@ const portfolioSchema = {
   jsonLd={portfolioSchema}
 >
   <div class="page-content">
-
+    {loadError ? (
+      <FallbackState
+        type="error"
+        title="Unable to load projects"
+        message="Something went wrong while loading projects. Please try again shortly."
+      />
+    ) : (
+    <>
     <header class="mb-7 animate-fade-up">
       <p class="text-[11px] font-bold font-display tracking-[0.12em] uppercase text-purple mb-1.5">
         Selected Work
@@ -94,7 +110,8 @@ const portfolioSchema = {
         No projects in this category.
       </p>
     </section>
-
+    </>
+    )}
   </div>
 </Layout>
 

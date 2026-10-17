@@ -14,7 +14,7 @@ const { data: project } = await supabase
   .single<Project>();
 
 if (!project) {
-  return Astro.redirect('/projects', 302);
+  return Astro.redirect('/404');
 }
 
 const TYPE_SLUG: Record<ProjectType, string> = {
