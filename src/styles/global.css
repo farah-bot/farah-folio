@@ -131,6 +131,7 @@
 @layer base {
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
+  html.lenis { scroll-behavior: auto; }
 
   body {
     background-color: #080808;
