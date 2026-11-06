@@ -38,6 +38,7 @@ export interface Project {
   order_index: number;
   case_study_url?: string;
   project_type: ProjectType;
+  is_visible?: boolean;
 }
 
 export interface Experience {

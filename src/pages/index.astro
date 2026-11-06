@@ -14,15 +14,27 @@ let projects: Project[] = [];
 let loadError = false;
 
 try {
-  const [{ data: profileData, error: profileError }, { data: projectsRaw }] = await Promise.all([
+  let [{ data: profileData, error: profileError }, { data: projectsRaw, error: projectsError }] = await Promise.all([
     supabase.from('profile').select('*').single<Profile>(),
-    supabase.from('projects').select('*').eq('featured', true).order('order_index').limit(5),
+    supabase.from('projects').select('*').eq('featured', true).eq('is_visible', true).order('order_index').limit(5),
   ]);
 
+  if (projectsError && projectsError.code === '42703') {
+    const fallback = await supabase
+      .from('projects')
+      .select('*')
+      .eq('featured', true)
+      .order('order_index')
+      .limit(5);
+    projectsRaw = fallback.data;
+    projectsError = fallback.error;
+  }
+
   if (profileError) throw profileError;
+  if (projectsError) throw projectsError;
 
   profile = profileData;
-  projects = projectsRaw ?? [];
+  projects = (projectsRaw ?? []).filter(p => p.is_visible !== false);
 } catch {
   loadError = true;
 }

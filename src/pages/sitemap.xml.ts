@@ -4,10 +4,29 @@ export const prerender = false;
 
 const SITE = 'https://farah-folio.vercel.app';
 
+type ProjectItem = {
+  id: string;
+  is_visible?: boolean;
+};
+
 export async function GET() {
-  const { data: projects } = await supabase
+  let projects: ProjectItem[] = [];
+
+  const { data, error } = await supabase
     .from('projects')
-    .select('id');
+    .select('id, is_visible')
+    .eq('is_visible', true);
+
+  if (error && error.code === '42703') {
+    const fallback = await supabase
+      .from('projects')
+      .select('id');
+    projects = (fallback.data as ProjectItem[]) ?? [];
+  } else {
+    projects = (data as ProjectItem[]) ?? [];
+  }
+
+  const visibleProjects = projects.filter(p => p.is_visible !== false);
 
   const staticRoutes = [
     `${SITE}/`,
@@ -15,7 +34,7 @@ export async function GET() {
     `${SITE}/about`,
   ];
 
-  const projectRoutes = (projects ?? []).map(
+  const projectRoutes = visibleProjects.map(
     project => `${SITE}/projects/${project.id}`
   );
 

@@ -13,7 +13,9 @@ const { data: project } = await supabase
   .eq('id', id)
   .single<Project>();
 
-if (!project) {
+const isPreview = Astro.url.searchParams.get('preview') === 'true';
+
+if (!project || (project.is_visible === false && !isPreview)) {
   return Astro.redirect('/404');
 }
 
